@@ -37,6 +37,7 @@ import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.ProxyHints;
 import org.springframework.aot.hint.ReflectionHints;
 import org.springframework.aot.hint.ResourceHints;
+import org.springframework.aot.hint.RuntimeHintCondition;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.TypeReference;
 import org.springframework.core.codec.StringDecoder;
@@ -154,8 +155,8 @@ public class FileNativeConfigurationGeneratorTests {
 		FileNativeConfigurationGenerator generator = new FileNativeConfigurationGenerator(tempDir);
 		RuntimeHints hints = new RuntimeHints();
 		ResourceHints resourceHints = hints.resources();
-		resourceHints.registerPattern("com/example/test.properties");
-		resourceHints.registerPattern("com/example/another.properties");
+		resourceHints.registerPattern("com/example/test.properties", RuntimeHintCondition.of(FileNativeConfigurationGeneratorTests.class));
+		resourceHints.registerPattern("com/example/another.properties", RuntimeHintCondition.of(FileNativeConfigurationGeneratorTests.class));
 		generator.generate(hints);
 		assertEquals("""
 				{
@@ -176,7 +177,7 @@ public class FileNativeConfigurationGeneratorTests {
 		FileNativeConfigurationGenerator generator = new FileNativeConfigurationGenerator(tempDir, groupId, artifactId);
 		RuntimeHints hints = new RuntimeHints();
 		ResourceHints resourceHints = hints.resources();
-		resourceHints.registerPattern("com/example/test.properties");
+		resourceHints.registerPattern("com/example/test.properties", RuntimeHintCondition.of(FileNativeConfigurationGeneratorTests.class));
 		generator.generate(hints);
 		Path jsonFile = tempDir.resolve("META-INF").resolve("native-image").resolve(groupId).resolve(artifactId).resolve(filename);
 		assertThat(jsonFile.toFile().exists()).isTrue();

@@ -29,6 +29,7 @@ import org.springframework.beans.factory.generator.BeanFactoryInitialization;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.testfixture.beans.factory.generator.SimpleConfiguration;
+import org.springframework.context.testfixture.context.generator.annotation.ImportAwareConfiguration;
 import org.springframework.context.testfixture.context.generator.annotation.ImportConfiguration;
 import org.springframework.javapoet.ClassName;
 import org.springframework.javapoet.support.CodeSnippet;
@@ -77,8 +78,9 @@ public class ImportAwareBeanFactoryContributionTests {
 		GeneratedTypeContext generationContext = createGenerationContext();
 		contribution.applyTo(new BeanFactoryInitialization(generationContext));
 		assertThat(generationContext.runtimeHints().resources().resourcePatterns())
-				.singleElement().satisfies(resourceHint -> assertThat(resourceHint.getIncludes()).containsOnly(
-						"org/springframework/context/testfixture/context/generator/annotation/ImportConfiguration.class"));
+				.singleElement().satisfies(resourceHint -> assertThat(resourceHint.getIncludes()).hasSize(1).hasEntrySatisfying(
+						"org/springframework/context/testfixture/context/generator/annotation/ImportConfiguration.class", value ->
+						assertThat(value.getReachableType().getCanonicalName()).isEqualTo(ImportAwareConfiguration.class.getCanonicalName())));
 	}
 
 	@Test

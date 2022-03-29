@@ -16,14 +16,13 @@
 
 package org.springframework.aot.nativex;
 
-import java.io.IOException;
-
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 
 import org.springframework.aot.hint.ResourceHints;
+import org.springframework.aot.hint.RuntimeHintCondition;
 
 /**
  * Tests for {@link ResourceHintsSerializer}.
@@ -35,7 +34,7 @@ public class ResourceHintsSerializerTests {
 	private final ResourceHintsSerializer serializer = new ResourceHintsSerializer();
 
 	@Test
-	void empty() throws IOException, JSONException {
+	void empty() throws JSONException {
 		ResourceHints hints = new ResourceHints();
 		assertEquals("{}", hints);
 	}
@@ -43,14 +42,20 @@ public class ResourceHintsSerializerTests {
 	@Test
 	void registerExactMatch() throws  JSONException {
 		ResourceHints hints = new ResourceHints();
-		hints.registerPattern("com/example/test.properties");
-		hints.registerPattern("com/example/another.properties");
+		hints.registerPattern("com/example/test.properties", RuntimeHintCondition.of(ResourceHintsSerializerTests.class));
+		hints.registerPattern("com/example/another.properties", RuntimeHintCondition.of(ResourceHintsSerializerTests.class));
 		assertEquals("""
 				{
 					"resources": {
 						"includes": [
-							{ "pattern" : "\\\\Qcom/example/test.properties\\\\E"},
-							{ "pattern" : "\\\\Qcom/example/another.properties\\\\E"}
+							{
+								"pattern" : "\\\\Qcom/example/test.properties\\\\E",
+								"condition": { "typeReachable": "org.springframework.aot.nativex.ResourceHintsSerializerTests" }
+							},
+							{
+								"pattern" : "\\\\Qcom/example/another.properties\\\\E",
+								"condition": { "typeReachable": "org.springframework.aot.nativex.ResourceHintsSerializerTests" }
+							}
 						]
 					}
 				}""", hints);
@@ -59,12 +64,15 @@ public class ResourceHintsSerializerTests {
 	@Test
 	void registerPattern() throws JSONException {
 		ResourceHints hints = new ResourceHints();
-		hints.registerPattern("com/example/*.properties");
+		hints.registerPattern("com/example/*.properties", RuntimeHintCondition.of(ResourceHintsSerializerTests.class));
 		assertEquals("""
 				{
 					"resources": {
 						"includes" : [
-							{ "pattern" : "\\\\Qcom/example/\\\\E.*\\\\Q.properties\\\\E"}
+							{
+								"pattern" : "\\\\Qcom/example/\\\\E.*\\\\Q.properties\\\\E",
+								"condition": { "typeReachable": "org.springframework.aot.nativex.ResourceHintsSerializerTests" }
+							}
 						]
 					}
 				}""", hints);
@@ -73,18 +81,32 @@ public class ResourceHintsSerializerTests {
 	@Test
 	void registerPatternWithIncludesAndExcludes() throws JSONException {
 		ResourceHints hints = new ResourceHints();
-		hints.registerPattern("com/example/*.properties", hint -> hint.excludes("com/example/to-ignore.properties"));
-		hints.registerPattern("org/example/*.properties", hint -> hint.excludes("org/example/to-ignore.properties"));
+		hints.registerPattern("com/example/*.properties", RuntimeHintCondition.of(ResourceHintsSerializerTests.class),
+				hint -> hint.exclude("com/example/to-ignore.properties", RuntimeHintCondition.of(ResourceHintsSerializerTests.class)));
+		hints.registerPattern("org/example/*.properties", RuntimeHintCondition.of(ResourceHintsSerializerTests.class),
+				hint -> hint.exclude("org/example/to-ignore.properties", RuntimeHintCondition.of(ResourceHintsSerializerTests.class)));
 		assertEquals("""
 				{
 					"resources": {
 						"includes": [
-							{ "pattern" : "\\\\Qcom/example/\\\\E.*\\\\Q.properties\\\\E"},
-							{ "pattern" : "\\\\Qorg/example/\\\\E.*\\\\Q.properties\\\\E"}
+							{
+								"pattern" : "\\\\Qcom/example/\\\\E.*\\\\Q.properties\\\\E",
+								"condition": { "typeReachable": "org.springframework.aot.nativex.ResourceHintsSerializerTests" }
+							},
+							{
+								"pattern" : "\\\\Qorg/example/\\\\E.*\\\\Q.properties\\\\E",
+								"condition": { "typeReachable": "org.springframework.aot.nativex.ResourceHintsSerializerTests" }
+							}
 						],
 						"excludes": [
-							{ "pattern" : "\\\\Qcom/example/to-ignore.properties\\\\E"},
-							{ "pattern" : "\\\\Qorg/example/to-ignore.properties\\\\E"}
+							{
+								"pattern" : "\\\\Qcom/example/to-ignore.properties\\\\E",
+								"condition": { "typeReachable": "org.springframework.aot.nativex.ResourceHintsSerializerTests" }
+							},
+							{
+								"pattern" : "\\\\Qorg/example/to-ignore.properties\\\\E",
+								"condition": { "typeReachable": "org.springframework.aot.nativex.ResourceHintsSerializerTests" }
+							}
 						]
 					}
 				}""", hints);
@@ -93,12 +115,15 @@ public class ResourceHintsSerializerTests {
 	@Test
 	void registerType() throws JSONException {
 		ResourceHints hints = new ResourceHints();
-		hints.registerType(String.class);
+		hints.registerType(String.class, ResourceHintsSerializerTests.class);
 		assertEquals("""
 				{
 					"resources": {
 						"includes" : [
-							{ "pattern" : "\\\\Qjava/lang/String.class\\\\E"}
+							{
+								"pattern" : "\\\\Qjava/lang/String.class\\\\E",
+								"condition": { "typeReachable": "org.springframework.aot.nativex.ResourceHintsSerializerTests" }
+							}
 						]
 					}
 				}""", hints);
@@ -107,8 +132,8 @@ public class ResourceHintsSerializerTests {
 	@Test
 	void registerResourceBundle() throws JSONException {
 		ResourceHints hints = new ResourceHints();
-		hints.registerResourceBundle("com.example.message");
-		hints.registerResourceBundle("com.example.message2");
+		hints.registerResourceBundle("com.example.message", RuntimeHintCondition.of(ResourceHintsSerializerTests.class));
+		hints.registerResourceBundle("com.example.message2", RuntimeHintCondition.of(ResourceHintsSerializerTests.class));
 		assertEquals("""
 				{
 					"bundles": [

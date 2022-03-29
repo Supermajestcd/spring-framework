@@ -33,10 +33,11 @@ class RuntimeHintsTests {
 
 	@Test
 	void reflectionHintWithClass() {
-		this.hints.reflection().registerType(String.class, StringBuilder.class,
+		this.hints.reflection().registerType(String.class, RuntimeHintsTests.class,
 				hint -> hint.withMembers(MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS));
 		assertThat(this.hints.reflection().typeHints()).singleElement().satisfies(typeHint -> {
 			assertThat(typeHint.getType().getCanonicalName()).isEqualTo(String.class.getCanonicalName());
+			assertThat(typeHint.getCondition().getReachableType().getCanonicalName()).isEqualTo(RuntimeHintsTests.class.getCanonicalName());
 			assertThat(typeHint.fields()).isEmpty();
 			assertThat(typeHint.constructors()).isEmpty();
 			assertThat(typeHint.methods()).isEmpty();
@@ -46,9 +47,10 @@ class RuntimeHintsTests {
 
 	@Test
 	void resourceHintWithClass() {
-		this.hints.resources().registerType(String.class);
+		this.hints.resources().registerType(String.class, RuntimeHintsTests.class);
 		assertThat(this.hints.resources().resourcePatterns()).singleElement().satisfies(resourceHint -> {
-			assertThat(resourceHint.getIncludes()).containsExactly("java/lang/String.class");
+			assertThat(resourceHint.getIncludes()).hasSize(1).hasEntrySatisfying("java/lang/String.class", value ->
+					assertThat(value.getReachableType().getCanonicalName()).isEqualTo(RuntimeHintsTests.class.getCanonicalName()));
 			assertThat(resourceHint.getExcludes()).isEmpty();
 		});
 	}

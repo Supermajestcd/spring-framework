@@ -16,9 +16,8 @@
 
 package org.springframework.aot.hint;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import org.junit.jupiter.api.Test;
@@ -31,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Tests for {@link ResourceHints}.
  *
  * @author Stephane Nicoll
+ * @author Sebastien Deleuze
  */
 class ResourceHintsTests {
 
@@ -38,87 +38,88 @@ class ResourceHintsTests {
 
 	@Test
 	void registerType() {
-		this.resourceHints.registerType(String.class);
+		this.resourceHints.registerType(String.class, ResourceHintsTests.class);
 		assertThat(this.resourceHints.resourcePatterns()).singleElement().satisfies(
-				patternOf("java/lang/String.class"));
+				patternOf("java/lang/String.class", RuntimeHintCondition.of(ResourceHintsTests.class)));
 	}
 
 	@Test
 	void registerTypeWithNestedType() {
-		this.resourceHints.registerType(TypeReference.of(Nested.class));
+		this.resourceHints.registerType(TypeReference.of(Nested.class), RuntimeHintCondition.of(ResourceHintsTests.class));
 		assertThat(this.resourceHints.resourcePatterns()).singleElement().satisfies(
-				patternOf("org/springframework/aot/hint/ResourceHintsTests$Nested.class"));
+				patternOf("org/springframework/aot/hint/ResourceHintsTests$Nested.class", RuntimeHintCondition.of(ResourceHintsTests.class)));
 	}
 
 	@Test
 	void registerTypeWithInnerNestedType() {
-		this.resourceHints.registerType(TypeReference.of(Inner.class));
+		this.resourceHints.registerType(TypeReference.of(Inner.class), RuntimeHintCondition.of(ResourceHintsTests.class));
 		assertThat(this.resourceHints.resourcePatterns()).singleElement().satisfies(
-				patternOf("org/springframework/aot/hint/ResourceHintsTests$Nested$Inner.class"));
+				patternOf("org/springframework/aot/hint/ResourceHintsTests$Nested$Inner.class", RuntimeHintCondition.of(ResourceHintsTests.class)));
 	}
 
 	@Test
 	void registerTypeSeveralTimesAddsOnlyOneEntry() {
-		this.resourceHints.registerType(String.class);
-		this.resourceHints.registerType(TypeReference.of(String.class));
+		this.resourceHints.registerType(String.class, ResourceHintsTests.class);
+		this.resourceHints.registerType(TypeReference.of(String.class), RuntimeHintCondition.of(ResourceHintsTests.class));
 		assertThat(this.resourceHints.resourcePatterns()).singleElement().satisfies(
-				patternOf("java/lang/String.class"));
+				patternOf("java/lang/String.class", RuntimeHintCondition.of(ResourceHintsTests.class)));
 	}
 
 	@Test
 	void registerExactMatch() {
-		this.resourceHints.registerPattern("com/example/test.properties");
-		this.resourceHints.registerPattern("com/example/another.properties");
+		this.resourceHints.registerPattern("com/example/test.properties", RuntimeHintCondition.of(ResourceHintsTests.class));
+		this.resourceHints.registerPattern("com/example/another.properties", RuntimeHintCondition.of(ResourceHintsTests.class));
 		assertThat(this.resourceHints.resourcePatterns())
-				.anySatisfy(patternOf("com/example/test.properties"))
-				.anySatisfy(patternOf("com/example/another.properties"))
+				.anySatisfy(patternOf("com/example/test.properties", RuntimeHintCondition.of(ResourceHintsTests.class)))
+				.anySatisfy(patternOf("com/example/another.properties", RuntimeHintCondition.of(ResourceHintsTests.class)))
 				.hasSize(2);
 	}
 
 	@Test
 	void registerPattern() {
-		this.resourceHints.registerPattern("com/example/*.properties");
+		this.resourceHints.registerPattern("com/example/*.properties", RuntimeHintCondition.of(ResourceHintsTests.class));
 		assertThat(this.resourceHints.resourcePatterns()).singleElement().satisfies(
-				patternOf("com/example/*.properties"));
+				patternOf("com/example/*.properties", RuntimeHintCondition.of(ResourceHintsTests.class)));
 	}
 
 	@Test
 	void registerPatternWithIncludesAndExcludes() {
-		this.resourceHints.registerPattern("com/example/*.properties",
-				resourceHint -> resourceHint.excludes("com/example/to-ignore.properties"));
+		this.resourceHints.registerPattern("com/example/*.properties", RuntimeHintCondition.of(ResourceHintsTests.class),
+				resourceHint -> resourceHint.exclude("com/example/to-ignore.properties",
+						RuntimeHintCondition.of(ResourceHintsTests.class)));
 		assertThat(this.resourceHints.resourcePatterns()).singleElement().satisfies(patternOf(
-				List.of("com/example/*.properties"),
-				List.of("com/example/to-ignore.properties")));
+				Map.of("com/example/*.properties", RuntimeHintCondition.of(ResourceHintsTests.class)),
+				Map.of("com/example/to-ignore.properties", RuntimeHintCondition.of(ResourceHintsTests.class))));
 	}
 
 	@Test
 	void registerResourceBundle() {
-		this.resourceHints.registerResourceBundle("com.example.message");
+		this.resourceHints.registerResourceBundle("com.example.message", RuntimeHintCondition.of(ResourceHintsTests.class));
 		assertThat(this.resourceHints.resourceBundles()).singleElement()
 				.satisfies(resourceBundle("com.example.message"));
 	}
 
 	@Test
 	void registerResourceBundleSeveralTimesAddsOneEntry() {
-		this.resourceHints.registerResourceBundle("com.example.message")
-				.registerResourceBundle("com.example.message");
+		this.resourceHints.registerResourceBundle("com.example.message", RuntimeHintCondition.of(ResourceHintsTests.class))
+				.registerResourceBundle("com.example.message", RuntimeHintCondition.of(ResourceHintsTests.class));
 		assertThat(this.resourceHints.resourceBundles()).singleElement()
 				.satisfies(resourceBundle("com.example.message"));
 	}
 
 
-	private Consumer<ResourcePatternHint> patternOf(String... includes) {
-		return patternOf(Arrays.asList(includes), Collections.emptyList());
+	private Consumer<ResourcePatternHint> patternOf(String include, RuntimeHintCondition condition) {
+		return patternOf(Collections.singletonMap(include, condition), Collections.emptyMap());
 	}
 
 	private Consumer<ResourceBundleHint> resourceBundle(String baseName) {
 		return resourceBundleHint -> assertThat(resourceBundleHint.getBaseName()).isEqualTo(baseName);
 	}
 
-	private Consumer<ResourcePatternHint> patternOf(List<String> includes, List<String> excludes) {
+	private Consumer<ResourcePatternHint> patternOf(Map<String, RuntimeHintCondition> includes, Map<String, RuntimeHintCondition> excludes) {
 		return pattern -> {
-			assertThat(pattern.getIncludes()).containsExactlyElementsOf(includes);
-			assertThat(pattern.getExcludes()).containsExactlyElementsOf(excludes);
+			assertThat(pattern.getIncludes()).containsExactlyEntriesOf(includes);
+			assertThat(pattern.getExcludes()).containsExactlyEntriesOf(excludes);
 		};
 	}
 

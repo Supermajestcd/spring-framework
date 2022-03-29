@@ -17,10 +17,9 @@
 package org.springframework.aot.hint;
 
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -34,17 +33,17 @@ import org.springframework.aot.hint.ResourcePatternHint.Builder;
  */
 public class ResourceHints {
 
-	private final Set<TypeReference> types;
+	private final Map<TypeReference, RuntimeHintCondition> types;
 
 	private final List<Builder> resourcePatternHints;
 
-	private final Set<String> resourceBundleHints;
+	private final Map<String, RuntimeHintCondition> resourceBundleHints;
 
 
 	public ResourceHints() {
-		this.types = new HashSet<>();
+		this.types = new LinkedHashMap<>();
 		this.resourcePatternHints = new ArrayList<>();
-		this.resourceBundleHints = new LinkedHashSet<>();
+		this.resourceBundleHints = new LinkedHashMap<>();
 	}
 
 	/**
@@ -62,18 +61,20 @@ public class ResourceHints {
 	 * @return a stream of {@link ResourceBundleHint}
 	 */
 	public Stream<ResourceBundleHint> resourceBundles() {
-		return this.resourceBundleHints.stream().map(ResourceBundleHint::new);
+		return this.resourceBundleHints.entrySet().stream()
+				.map(entry -> new ResourceBundleHint(entry.getKey(), entry.getValue()));
 	}
 
 	/**
 	 * Register that the resources matching the specified pattern should be
 	 * made available at runtime.
 	 * @param include a pattern of the resources to include
+	 * @param condition the condition that defines when the hint should apply
 	 * @param resourceHint a builder to further customize the resource pattern
 	 * @return {@code this}, to facilitate method chaining
 	 */
-	public ResourceHints registerPattern(String include, Consumer<Builder> resourceHint) {
-		Builder builder = new Builder().includes(include);
+	public ResourceHints registerPattern(String include, RuntimeHintCondition condition, Consumer<Builder> resourceHint) {
+		Builder builder = new Builder().include(include, condition);
 		if (resourceHint != null) {
 			resourceHint.accept(builder);
 		}
@@ -85,20 +86,22 @@ public class ResourceHints {
 	 * Register that the resources matching the specified pattern should be
 	 * made available at runtime.
 	 * @param include a pattern of the resources to include
+	 * @param condition the condition that defines when the hint should apply
 	 * @return {@code this}, to facilitate method chaining
 	 */
-	public ResourceHints registerPattern(String include) {
-		return registerPattern(include, null);
+	public ResourceHints registerPattern(String include, RuntimeHintCondition condition) {
+		return registerPattern(include, condition, null);
 	}
 
 	/**
 	 * Register that the bytecode of the type defined by the specified
 	 * {@link TypeReference} should be made available at runtime.
 	 * @param type the type to include
+	 * @param condition the condition that defines when the hint should apply
 	 * @return {@code this}, to facilitate method chaining
 	 */
-	public ResourceHints registerType(TypeReference type) {
-		this.types.add(type);
+	public ResourceHints registerType(TypeReference type, RuntimeHintCondition condition) {
+		this.types.put(type, condition);
 		return this;
 	}
 
@@ -106,26 +109,28 @@ public class ResourceHints {
 	 * Register that the bytecode of the specified type should be made
 	 * available at runtime.
 	 * @param type the type to include
+	 * @param reachableType the reachable type that defines when the hint should apply
 	 * @return {@code this}, to facilitate method chaining
 	 */
-	public ResourceHints registerType(Class<?> type) {
-		return registerType(TypeReference.of(type));
+	public ResourceHints registerType(Class<?> type, Class<?> reachableType) {
+		return registerType(TypeReference.of(type), RuntimeHintCondition.of(reachableType));
 	}
 
 	/**
 	 * Register that the resource bundle with the specified base name should
 	 * be made available at runtime.
 	 * @param baseName the base name of the resource bundle
+	 * @param condition the condition that defines when the hint should apply
 	 * @return {@code this}, to facilitate method chaining
 	 */
-	public ResourceHints registerResourceBundle(String baseName) {
-		this.resourceBundleHints.add(baseName);
+	public ResourceHints registerResourceBundle(String baseName, RuntimeHintCondition condition) {
+		this.resourceBundleHints.put(baseName, condition);
 		return this;
 	}
 
 	private ResourcePatternHint typesPatternResourceHint() {
 		Builder builder = new Builder();
-		this.types.forEach(type -> builder.includes(toIncludePattern(type)));
+		this.types.forEach((type, condition) -> builder.include(toIncludePattern(type), condition));
 		return builder.build();
 	}
 

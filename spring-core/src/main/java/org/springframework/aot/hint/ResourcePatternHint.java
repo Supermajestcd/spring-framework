@@ -16,11 +16,8 @@
 
 package org.springframework.aot.hint;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * A hint that describes resources that should be made available at runtime.
@@ -30,25 +27,26 @@ import java.util.Set;
  * {@code *} character to indicate a wildcard search.
  *
  * @author Stephane Nicoll
+ * @author Sebastien Deleuze
  * @since 6.0
  */
 public final class ResourcePatternHint {
 
-	private final List<String> includes;
+	private final Map<String, RuntimeHintCondition> includes;
 
-	private final List<String> excludes;
+	private final Map<String, RuntimeHintCondition> excludes;
 
 
 	private ResourcePatternHint(Builder builder) {
-		this.includes = new ArrayList<>(builder.includes);
-		this.excludes = new ArrayList<>(builder.excludes);
+		this.includes = builder.includes;
+		this.excludes = builder.excludes;
 	}
 
 	/**
 	 * Return the include patterns to use to identify the resources to match.
 	 * @return the include patterns
 	 */
-	public List<String> getIncludes() {
+	public Map<String, RuntimeHintCondition> getIncludes() {
 		return this.includes;
 	}
 
@@ -56,7 +54,7 @@ public final class ResourcePatternHint {
 	 * Return the exclude patterns to use to identify the resources to match.
 	 * @return the exclude patterns
 	 */
-	public List<String> getExcludes() {
+	public Map<String, RuntimeHintCondition> getExcludes() {
 		return this.excludes;
 	}
 
@@ -66,28 +64,30 @@ public final class ResourcePatternHint {
 	 */
 	public static class Builder {
 
-		private final Set<String> includes = new LinkedHashSet<>();
+		private final Map<String, RuntimeHintCondition> includes = new LinkedHashMap<>();
 
-		private final Set<String> excludes = new LinkedHashSet<>();
+		private final Map<String, RuntimeHintCondition> excludes = new LinkedHashMap<>();
 
 
 		/**
 		 * Includes the resources matching the specified pattern.
-		 * @param includes the include patterns
+		 * @param include the include pattern
+		 * @param condition the condition that defines when the hint should apply
 		 * @return {@code this}, to facilitate method chaining
 		 */
-		public Builder includes(String... includes) {
-			this.includes.addAll(Arrays.asList(includes));
+		public Builder include(String include, RuntimeHintCondition condition) {
+			this.includes.put(include, condition);
 			return this;
 		}
 
 		/**
 		 * Exclude resources matching the specified pattern.
-		 * @param excludes the excludes pattern
+		 * @param exclude the excludes pattern
+		 * @param condition the condition that defines when the hint should apply
 		 * @return {@code this}, to facilitate method chaining
 		 */
-		public Builder excludes(String... excludes) {
-			this.excludes.addAll(Arrays.asList(excludes));
+		public Builder exclude(String exclude, RuntimeHintCondition condition) {
+			this.excludes.put(exclude, condition);
 			return this;
 		}
 

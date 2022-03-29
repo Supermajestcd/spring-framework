@@ -28,6 +28,7 @@ import org.springframework.aot.generator.CodeContribution;
 import org.springframework.aot.hint.ExecutableHint;
 import org.springframework.aot.hint.ExecutableMode;
 import org.springframework.aot.hint.MemberCategory;
+import org.springframework.aot.hint.RuntimeHintCondition;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.TypeHint;
 import org.springframework.aot.hint.TypeReference;
@@ -51,6 +52,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Tests for {@link DefaultBeanInstantiationGenerator}.
  *
  * @author Stephane Nicoll
+ * @author Sebastien Deleuze
  */
 class DefaultBeanInstantiationGeneratorTests {
 
@@ -123,7 +125,8 @@ class DefaultBeanInstantiationGeneratorTests {
 		CodeContribution contribution = generate(SimpleConfiguration.class.getDeclaredConstructors()[0],
 				contrib -> {
 					contrib.statements().add(CodeBlock.of("// hello\n"));
-					contrib.runtimeHints().resources().registerPattern("com/example/*.properties");
+					contrib.runtimeHints().resources().registerPattern("com/example/*.properties",
+							RuntimeHintCondition.of(DefaultBeanInstantiationGeneratorTests.class));
 				},
 				contrib -> contrib.runtimeHints().reflection().registerType(String.class,
 						DefaultBeanInstantiationGeneratorTests.class,
@@ -135,7 +138,8 @@ class DefaultBeanInstantiationGeneratorTests {
 					return bean;
 				}""");
 		assertThat(contribution.runtimeHints().resources().resourcePatterns()).singleElement().satisfies(hint ->
-				assertThat(hint.getIncludes()).containsOnly("com/example/*.properties"));
+				assertThat(hint.getIncludes()).hasSize(1).hasEntrySatisfying("com/example/*.properties", value ->
+						assertThat(value.getReachableType().getCanonicalName()).isEqualTo(DefaultBeanInstantiationGeneratorTests.class.getCanonicalName())));
 		assertThat(contribution.runtimeHints().reflection().getTypeHint(String.class)).satisfies(hint -> {
 			assertThat(hint.getType()).isEqualTo(TypeReference.of(String.class));
 			assertThat(hint.getMemberCategories()).containsOnly(MemberCategory.INVOKE_PUBLIC_METHODS);
@@ -175,7 +179,8 @@ class DefaultBeanInstantiationGeneratorTests {
 		CodeContribution contribution = generate(method(SimpleConfiguration.class, "stringBean"),
 				contrib -> {
 					contrib.statements().add(CodeBlock.of("// hello\n"));
-					contrib.runtimeHints().resources().registerPattern("com/example/*.properties");
+					contrib.runtimeHints().resources().registerPattern("com/example/*.properties",
+							RuntimeHintCondition.of(DefaultBeanInstantiationGeneratorTests.class));
 				},
 				contrib -> contrib.runtimeHints().reflection().registerType(String.class,
 						DefaultBeanInstantiationGeneratorTests.class,
@@ -187,7 +192,8 @@ class DefaultBeanInstantiationGeneratorTests {
 					return bean;
 				}""");
 		assertThat(contribution.runtimeHints().resources().resourcePatterns()).singleElement().satisfies(hint ->
-				assertThat(hint.getIncludes()).containsOnly("com/example/*.properties"));
+				assertThat(hint.getIncludes()).hasSize(1).hasEntrySatisfying("com/example/*.properties", value ->
+						assertThat(value.getReachableType().getCanonicalName()).isEqualTo(DefaultBeanInstantiationGeneratorTests.class.getCanonicalName())));
 		assertThat(contribution.runtimeHints().reflection().getTypeHint(String.class)).satisfies(hint -> {
 			assertThat(hint.getType()).isEqualTo(TypeReference.of(String.class));
 			assertThat(hint.getMemberCategories()).containsOnly(MemberCategory.INVOKE_PUBLIC_METHODS);

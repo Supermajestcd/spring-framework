@@ -18,12 +18,14 @@ package org.springframework.aot.nativex;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.aot.hint.ResourceBundleHint;
 import org.springframework.aot.hint.ResourceHints;
 import org.springframework.aot.hint.ResourcePatternHint;
+import org.springframework.aot.hint.RuntimeHintCondition;
 
 /**
  * Serialize a {@link ResourceHints} to the JSON file expected by GraalVM {@code native-image} compiler,
@@ -52,10 +54,13 @@ class ResourceHintsSerializer {
 		Iterator<ResourcePatternHint> patternIterator = hints.resourcePatterns().iterator();
 		while (patternIterator.hasNext()) {
 			ResourcePatternHint hint = patternIterator.next();
-			Iterator<String> includeIterator = hint.getIncludes().iterator();
+			Iterator<Entry<String, RuntimeHintCondition>> includeIterator = hint.getIncludes().entrySet().iterator();
 			while (includeIterator.hasNext()) {
-				String pattern = JsonUtils.escape(patternToRegexp(includeIterator.next()));
-				builder.append("{ \"pattern\": \"").append(pattern).append("\" }");
+				Entry<String, RuntimeHintCondition> entry = includeIterator.next();
+				String pattern = JsonUtils.escape(patternToRegexp(entry.getKey()));
+				builder.append("{ \"pattern\": \"").append(pattern).append("\"");
+				String name = JsonUtils.escape(entry.getValue().getReachableType().getCanonicalName());
+				builder.append(",\n\"condition\": { \"typeReachable\": \"").append(name).append("\" } }");
 				if (includeIterator.hasNext()) {
 					builder.append(", ");
 				}
@@ -72,10 +77,13 @@ class ResourceHintsSerializer {
 		Iterator<ResourcePatternHint> patternIterator = hints.resourcePatterns().iterator();
 		while (patternIterator.hasNext()) {
 			ResourcePatternHint hint = patternIterator.next();
-			Iterator<String> excludeIterator = hint.getExcludes().iterator();
+			Iterator<Entry<String, RuntimeHintCondition>> excludeIterator = hint.getExcludes().entrySet().iterator();
 			while (excludeIterator.hasNext()) {
-				String pattern = JsonUtils.escape(patternToRegexp(excludeIterator.next()));
-				builder.append("{ \"pattern\": \"").append(pattern).append("\" }");
+				Entry<String, RuntimeHintCondition> entry = excludeIterator.next();
+						String pattern = JsonUtils.escape(patternToRegexp(entry.getKey()));
+				builder.append("{ \"pattern\": \"").append(pattern).append("\"");
+				String name = JsonUtils.escape(entry.getValue().getReachableType().getCanonicalName());
+				builder.append(",\n\"condition\": { \"typeReachable\": \"").append(name).append("\" } }");
 				if (excludeIterator.hasNext()) {
 					builder.append(", ");
 				}

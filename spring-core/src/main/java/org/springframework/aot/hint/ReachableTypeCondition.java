@@ -16,6 +16,8 @@
 
 package org.springframework.aot.hint;
 
+import java.util.Objects;
+
 /**
  * Reachable type condition that defines when a runtime hint should be applied.
  *
@@ -41,4 +43,20 @@ public class ReachableTypeCondition implements RuntimeHintCondition {
 		return this.reachableType;
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		ReachableTypeCondition condition = (ReachableTypeCondition) o;
+		return this.reachableType.getCanonicalName().equals(condition.reachableType.getCanonicalName());
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(this.reachableType.getCanonicalName());
+	}
 }

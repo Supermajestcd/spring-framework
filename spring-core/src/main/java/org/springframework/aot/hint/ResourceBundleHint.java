@@ -22,15 +22,19 @@ import java.util.ResourceBundle;
  * A hint that describes the need to access to a {@link ResourceBundle}.
  *
  * @author Stephane Nicoll
+ * @author Sebastien Deleuze
  * @since 6.0
  */
 public class ResourceBundleHint {
 
 	private final String baseName;
 
+	private final RuntimeHintCondition condition;
 
-	ResourceBundleHint(String baseName) {
+
+	ResourceBundleHint(String baseName, RuntimeHintCondition condition) {
 		this.baseName = baseName;
+		this.condition = condition;
 	}
 
 	/**
@@ -41,4 +45,11 @@ public class ResourceBundleHint {
 		return this.baseName;
 	}
 
+	/**
+	 * Return the {@code condition} of the resource bundle.
+	 * @return the condition
+	 */
+	public RuntimeHintCondition getCondition() {
+		return this.condition;
+	}
 }
