@@ -62,10 +62,8 @@ class ReflectionHintsSerializer {
 	}
 
 	private void serializeCondition(TypeHint hint, StringBuilder builder) {
-		if (hint.getReachableType() != null) {
-			String name = JsonUtils.escape(hint.getReachableType().getCanonicalName());
-			builder.append(",\n\"condition\": { \"typeReachable\": \"").append(name).append("\" }");
-		}
+		String name = JsonUtils.escape(hint.getCondition().getReachableType().getCanonicalName());
+		builder.append(",\n\"condition\": { \"typeReachable\": \"").append(name).append("\" }");
 	}
 
 	private void serializeFields(TypeHint hint, StringBuilder builder) {

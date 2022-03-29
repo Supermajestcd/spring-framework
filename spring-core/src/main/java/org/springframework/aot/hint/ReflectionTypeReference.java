@@ -61,4 +61,7 @@ final class ReflectionTypeReference extends AbstractTypeReference {
 		return this.enclosing;
 	}
 
+	Class<?> getType() {
+		return this.type;
+	}
 }

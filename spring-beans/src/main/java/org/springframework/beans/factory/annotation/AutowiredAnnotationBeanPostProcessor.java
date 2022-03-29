@@ -854,13 +854,13 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 
 		private void analyzeMember(CodeContribution contribution, Member member) {
 			if (member instanceof Method method) {
-				contribution.runtimeHints().reflection().registerMethod(method,
+				contribution.runtimeHints().reflection().registerMethod(method, method.getDeclaringClass(),
 						hint -> hint.setModes(ExecutableMode.INTROSPECT));
 				contribution.protectedAccess().analyze(member,
 						this.generator.getProtectedAccessInjectionOptions(member));
 			}
 			else if (member instanceof Field field) {
-				contribution.runtimeHints().reflection().registerField(field);
+				contribution.runtimeHints().reflection().registerField(field, field.getDeclaringClass());
 				contribution.protectedAccess().analyze(member,
 						this.generator.getProtectedAccessInjectionOptions(member));
 			}

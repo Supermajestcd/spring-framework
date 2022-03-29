@@ -99,7 +99,7 @@ class DefaultBeanInstantiationGenerator implements BeanInstantiationGenerator {
 			codeContribution.statements().addStatement(code.build());
 			return;
 		}
-		codeContribution.runtimeHints().reflection().registerConstructor(constructor,
+		codeContribution.runtimeHints().reflection().registerConstructor(constructor, constructor.getDeclaringClass(),
 				hint -> hint.withMode(ExecutableMode.INTROSPECT));
 		code.add("(instanceContext) ->");
 		branch(multiStatements, () -> code.beginControlFlow(""), () -> code.add(" "));
@@ -124,7 +124,7 @@ class DefaultBeanInstantiationGenerator implements BeanInstantiationGenerator {
 
 	private void generateBeanInstantiation(CodeContribution codeContribution, Method method) {
 		// Factory method can be introspected
-		codeContribution.runtimeHints().reflection().registerMethod(method,
+		codeContribution.runtimeHints().reflection().registerMethod(method, method.getDeclaringClass(),
 				hint -> hint.withMode(ExecutableMode.INTROSPECT));
 		List<Class<?>> parameterTypes = new ArrayList<>(Arrays.asList(method.getParameterTypes()));
 		boolean multiStatements = !this.contributions.isEmpty();

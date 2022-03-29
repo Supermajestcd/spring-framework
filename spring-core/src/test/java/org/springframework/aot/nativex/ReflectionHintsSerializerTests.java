@@ -50,9 +50,8 @@ public class ReflectionHintsSerializerTests {
 	@Test
 	void one() throws JSONException {
 		ReflectionHints hints = new ReflectionHints();
-		hints.registerType(StringDecoder.class, builder -> {
+		hints.registerType(StringDecoder.class, ReflectionHintsSerializerTests.class, builder -> {
 			builder
-					.onReachableType(TypeReference.of(String.class))
 					.withMembers(MemberCategory.PUBLIC_FIELDS, MemberCategory.DECLARED_FIELDS,
 							MemberCategory.INTROSPECT_PUBLIC_CONSTRUCTORS, MemberCategory.INTROSPECT_DECLARED_CONSTRUCTORS,
 							MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS, MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
@@ -74,7 +73,7 @@ public class ReflectionHintsSerializerTests {
 				[
 					{
 						"name" : "org.springframework.core.codec.StringDecoder",
-						"condition" : { "typeReachable" : "java.lang.String" },
+						"condition" : { "typeReachable" : "org.springframework.aot.nativex.ReflectionHintsSerializerTests" },
 						"allPublicFields" : true,
 						"allDeclaredFields" : true,
 						"queryAllPublicConstructors" : true,
@@ -105,28 +104,36 @@ public class ReflectionHintsSerializerTests {
 	@Test
 	void two() throws JSONException {
 		ReflectionHints hints = new ReflectionHints();
-		hints.registerType(Integer.class, builder -> {
+		hints.registerType(Integer.class, ReflectionHintsSerializerTests.class, builder -> {
 		});
-		hints.registerType(Long.class, builder -> {
+		hints.registerType(Long.class, ReflectionHintsSerializerTests.class, builder -> {
 		});
 
 		assertEquals("""
 				[
-					{ "name" : "java.lang.Integer" },
-					{ "name" : "java.lang.Long" }
+					{
+						"name" : "java.lang.Integer",
+						"condition" : { "typeReachable" : "org.springframework.aot.nativex.ReflectionHintsSerializerTests" }
+					},
+					{
+						"name" : "java.lang.Long",
+						"condition" : { "typeReachable" : "org.springframework.aot.nativex.ReflectionHintsSerializerTests" }
+					}
 				]""", hints);
 	}
 
 	@Test
 	void queriedMethods() throws JSONException {
 		ReflectionHints hints = new ReflectionHints();
-		hints.registerType(Integer.class, builder -> builder.withMethod("parseInt", List.of(TypeReference.of(String.class)),
+		hints.registerType(Integer.class, ReflectionHintsSerializerTests.class,
+				builder -> builder.withMethod("parseInt", List.of(TypeReference.of(String.class)),
 				b -> b.withMode(ExecutableMode.INTROSPECT)));
 
 		assertEquals("""
 				[
 					{
 						"name": "java.lang.Integer",
+						"condition" : { "typeReachable" : "org.springframework.aot.nativex.ReflectionHintsSerializerTests" },
 						"queriedMethods": [
 							{
 								"name": "parseInt",
@@ -141,13 +148,15 @@ public class ReflectionHintsSerializerTests {
 	@Test
 	void methods() throws JSONException {
 		ReflectionHints hints = new ReflectionHints();
-		hints.registerType(Integer.class, builder -> builder.withMethod("parseInt", List.of(TypeReference.of(String.class)),
+		hints.registerType(Integer.class, ReflectionHintsSerializerTests.class,
+				builder -> builder.withMethod("parseInt", List.of(TypeReference.of(String.class)),
 				b -> b.withMode(ExecutableMode.INVOKE)));
 
 		assertEquals("""
 				[
 					{
 						"name": "java.lang.Integer",
+						"condition" : { "typeReachable" : "org.springframework.aot.nativex.ReflectionHintsSerializerTests" },
 						"methods": [
 							{
 								"name": "parseInt",
@@ -161,15 +170,18 @@ public class ReflectionHintsSerializerTests {
 	@Test
 	void methodAndQueriedMethods() throws JSONException {
 		ReflectionHints hints = new ReflectionHints();
-		hints.registerType(Integer.class, builder -> builder.withMethod("parseInt", List.of(TypeReference.of(String.class)),
+		hints.registerType(Integer.class, ReflectionHintsSerializerTests.class,
+				builder -> builder.withMethod("parseInt", List.of(TypeReference.of(String.class)),
 				b -> b.withMode(ExecutableMode.INVOKE)));
-		hints.registerType(Integer.class, builder -> builder.withMethod("parseInt", List.of(TypeReference.of(String.class)),
+		hints.registerType(Integer.class, ReflectionHintsSerializerTests.class,
+				builder -> builder.withMethod("parseInt", List.of(TypeReference.of(String.class)),
 				b -> b.withMode(ExecutableMode.INTROSPECT)));
 
 		assertEquals("""
 				[
 					{
 						"name": "java.lang.Integer",
+						"condition" : { "typeReachable" : "org.springframework.aot.nativex.ReflectionHintsSerializerTests" },
 						"queriedMethods": [
 							{
 								"name": "parseInt",

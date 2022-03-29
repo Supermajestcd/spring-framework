@@ -204,7 +204,7 @@ public class BeanRegistrationBeanFactoryContribution implements BeanFactoryContr
 		for (String methodName : methodNames) {
 			Method method = ReflectionUtils.findMethod(getUserBeanClass(), methodName);
 			if (method != null) {
-				runtimeHints.reflection().registerMethod(method, hint -> hint.withMode(ExecutableMode.INVOKE));
+				runtimeHints.reflection().registerMethod(method, method.getDeclaringClass(), hint -> hint.withMode(ExecutableMode.INVOKE));
 			}
 		}
 	}
@@ -219,7 +219,7 @@ public class BeanRegistrationBeanFactoryContribution implements BeanFactoryContr
 			this.beanDefinition.getPropertyValues().getPropertyValueList().forEach(propertyValue -> {
 				Method writeMethod = findWriteMethod(beanInfo, propertyValue.getName());
 				if (writeMethod != null) {
-					reflectionHints.registerMethod(writeMethod, hint -> hint.withMode(ExecutableMode.INVOKE));
+					reflectionHints.registerMethod(writeMethod, writeMethod.getDeclaringClass(), hint -> hint.withMode(ExecutableMode.INVOKE));
 				}
 			});
 		}

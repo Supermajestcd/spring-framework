@@ -33,7 +33,7 @@ class RuntimeHintsTests {
 
 	@Test
 	void reflectionHintWithClass() {
-		this.hints.reflection().registerType(String.class,
+		this.hints.reflection().registerType(String.class, StringBuilder.class,
 				hint -> hint.withMembers(MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS));
 		assertThat(this.hints.reflection().typeHints()).singleElement().satisfies(typeHint -> {
 			assertThat(typeHint.getType().getCanonicalName()).isEqualTo(String.class.getCanonicalName());

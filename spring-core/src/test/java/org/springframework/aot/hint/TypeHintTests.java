@@ -34,28 +34,21 @@ class TypeHintTests {
 
 	@Test
 	void createWithNullTypeReference() {
-		assertThatIllegalArgumentException().isThrownBy(() -> TypeHint.of(null));
+		assertThatIllegalArgumentException().isThrownBy(() -> TypeHint.of(null, RuntimeHintCondition.of(StringBuilder.class)));
+		assertThatIllegalArgumentException().isThrownBy(() -> TypeHint.of(TypeReference.of(String.class), null));
 	}
 
 	@Test
 	void createWithType() {
-		TypeHint hint = TypeHint.of(TypeReference.of(String.class)).build();
+		TypeHint hint = TypeHint.of(TypeReference.of(String.class), RuntimeHintCondition.of(StringBuilder.class)).build();
 		assertThat(hint).isNotNull();
 		assertThat(hint.getType().getCanonicalName()).isEqualTo("java.lang.String");
-	}
-
-	@Test
-	void createWithTypeAndReachableType() {
-		TypeHint hint = TypeHint.of(TypeReference.of(String.class))
-				.onReachableType(TypeReference.of("com.example.Test")).build();
-		assertThat(hint).isNotNull();
-		assertThat(hint.getReachableType()).isNotNull();
-		assertThat(hint.getReachableType().getCanonicalName()).isEqualTo("com.example.Test");
+		assertThat(hint.getCondition().getReachableType().getCanonicalName()).isEqualTo("java.lang.StringBuilder");
 	}
 
 	@Test
 	void createWithField() {
-		TypeHint hint = TypeHint.of(TypeReference.of(String.class))
+		TypeHint hint = TypeHint.of(TypeReference.of(String.class), RuntimeHintCondition.of(StringBuilder.class))
 				.withField("value", fieldHint -> fieldHint.allowWrite(true)).build();
 		assertThat(hint.fields()).singleElement().satisfies(fieldHint -> {
 			assertThat(fieldHint.getName()).isEqualTo("value");
@@ -66,7 +59,7 @@ class TypeHintTests {
 
 	@Test
 	void createWithFieldReuseBuilder() {
-		Builder builder = TypeHint.of(TypeReference.of(String.class));
+		Builder builder = TypeHint.of(TypeReference.of(String.class), RuntimeHintCondition.of(StringBuilder.class));
 		builder.withField("value", fieldHint -> fieldHint.allowUnsafeAccess(true));
 		builder.withField("value", fieldHint -> {
 			fieldHint.allowWrite(true);
@@ -83,7 +76,7 @@ class TypeHintTests {
 	@Test
 	void createWithConstructor() {
 		List<TypeReference> parameterTypes = List.of(TypeReference.of(byte[].class), TypeReference.of(int.class));
-		TypeHint hint = TypeHint.of(TypeReference.of(String.class)).withConstructor(parameterTypes,
+		TypeHint hint = TypeHint.of(TypeReference.of(String.class), RuntimeHintCondition.of(StringBuilder.class)).withConstructor(parameterTypes,
 				constructorHint -> constructorHint.withMode(ExecutableMode.INVOKE)).build();
 		assertThat(hint.constructors()).singleElement().satisfies(constructorHint -> {
 			assertThat(constructorHint.getParameterTypes()).containsOnlyOnceElementsOf(parameterTypes);
@@ -94,7 +87,7 @@ class TypeHintTests {
 	@Test
 	void createConstructorReuseBuilder() {
 		List<TypeReference> parameterTypes = List.of(TypeReference.of(byte[].class), TypeReference.of(int.class));
-		Builder builder = TypeHint.of(TypeReference.of(String.class)).withConstructor(parameterTypes,
+		Builder builder = TypeHint.of(TypeReference.of(String.class), RuntimeHintCondition.of(StringBuilder.class)).withConstructor(parameterTypes,
 				constructorHint -> constructorHint.withMode(ExecutableMode.INVOKE));
 		TypeHint hint = builder.withConstructor(parameterTypes, constructorHint ->
 				constructorHint.withMode(ExecutableMode.INTROSPECT)).build();
@@ -107,7 +100,7 @@ class TypeHintTests {
 	@Test
 	void createWithMethod() {
 		List<TypeReference> parameterTypes = List.of(TypeReference.of(char[].class));
-		TypeHint hint = TypeHint.of(TypeReference.of(String.class)).withMethod("valueOf", parameterTypes,
+		TypeHint hint = TypeHint.of(TypeReference.of(String.class), RuntimeHintCondition.of(StringBuilder.class)).withMethod("valueOf", parameterTypes,
 				methodHint -> methodHint.withMode(ExecutableMode.INVOKE)).build();
 		assertThat(hint.methods()).singleElement().satisfies(methodHint -> {
 			assertThat(methodHint.getName()).isEqualTo("valueOf");
@@ -119,7 +112,7 @@ class TypeHintTests {
 	@Test
 	void createWithMethodReuseBuilder() {
 		List<TypeReference> parameterTypes = List.of(TypeReference.of(char[].class));
-		Builder builder = TypeHint.of(TypeReference.of(String.class)).withMethod("valueOf", parameterTypes,
+		Builder builder = TypeHint.of(TypeReference.of(String.class), RuntimeHintCondition.of(StringBuilder.class)).withMethod("valueOf", parameterTypes,
 				methodHint -> methodHint.withMode(ExecutableMode.INVOKE));
 		TypeHint hint = builder.withMethod("valueOf", parameterTypes,
 				methodHint -> methodHint.setModes(ExecutableMode.INTROSPECT)).build();
@@ -132,14 +125,14 @@ class TypeHintTests {
 
 	@Test
 	void createWithMemberCategory() {
-		TypeHint hint = TypeHint.of(TypeReference.of(String.class))
+		TypeHint hint = TypeHint.of(TypeReference.of(String.class), RuntimeHintCondition.of(StringBuilder.class))
 				.withMembers(MemberCategory.DECLARED_FIELDS).build();
 		assertThat(hint.getMemberCategories()).containsOnly(MemberCategory.DECLARED_FIELDS);
 	}
 
 	@Test
 	void typeHintHasAppropriateToString() {
-		TypeHint hint = TypeHint.of(TypeReference.of(String.class)).build();
+		TypeHint hint = TypeHint.of(TypeReference.of(String.class), RuntimeHintCondition.of(StringBuilder.class)).build();
 		assertThat(hint).hasToString("TypeHint[type=java.lang.String]");
 	}
 

@@ -97,9 +97,8 @@ public class FileNativeConfigurationGeneratorTests {
 		FileNativeConfigurationGenerator generator = new FileNativeConfigurationGenerator(tempDir);
 		RuntimeHints hints = new RuntimeHints();
 		ReflectionHints reflectionHints = hints.reflection();
-		reflectionHints.registerType(StringDecoder.class, builder -> {
+		reflectionHints.registerType(StringDecoder.class, String.class, builder -> {
 			builder
-					.onReachableType(TypeReference.of(String.class))
 					.withMembers(MemberCategory.PUBLIC_FIELDS, MemberCategory.DECLARED_FIELDS,
 							MemberCategory.INTROSPECT_PUBLIC_CONSTRUCTORS, MemberCategory.INTROSPECT_DECLARED_CONSTRUCTORS,
 							MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS, MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,

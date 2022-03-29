@@ -125,7 +125,8 @@ class DefaultBeanInstantiationGeneratorTests {
 					contrib.statements().add(CodeBlock.of("// hello\n"));
 					contrib.runtimeHints().resources().registerPattern("com/example/*.properties");
 				},
-				contrib -> contrib.runtimeHints().reflection().registerType(TypeReference.of(String.class),
+				contrib -> contrib.runtimeHints().reflection().registerType(String.class,
+						DefaultBeanInstantiationGeneratorTests.class,
 						hint -> hint.withMembers(MemberCategory.INVOKE_PUBLIC_METHODS)));
 		assertThat(code(contribution)).isEqualTo("""
 				(instanceContext) -> {
@@ -176,7 +177,8 @@ class DefaultBeanInstantiationGeneratorTests {
 					contrib.statements().add(CodeBlock.of("// hello\n"));
 					contrib.runtimeHints().resources().registerPattern("com/example/*.properties");
 				},
-				contrib -> contrib.runtimeHints().reflection().registerType(TypeReference.of(String.class),
+				contrib -> contrib.runtimeHints().reflection().registerType(String.class,
+						DefaultBeanInstantiationGeneratorTests.class,
 						hint -> hint.withMembers(MemberCategory.INVOKE_PUBLIC_METHODS)));
 		assertThat(code(contribution)).isEqualTo("""
 				(instanceContext) -> {

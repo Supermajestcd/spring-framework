@@ -76,11 +76,12 @@ public class ReflectionHints {
 	 * Register or customize reflection hints for the type defined by the
 	 * specified {@link TypeReference}.
 	 * @param type the type to customize
+	 * @param condition the condition that defines when the hint should apply
 	 * @param typeHint a builder to further customize hints for that type
 	 * @return {@code this}, to facilitate method chaining
 	 */
-	public ReflectionHints registerType(TypeReference type, Consumer<TypeHint.Builder> typeHint) {
-		Builder builder = this.types.computeIfAbsent(type, TypeHint.Builder::new);
+	public ReflectionHints registerType(TypeReference type, RuntimeHintCondition condition, Consumer<TypeHint.Builder> typeHint) {
+		Builder builder = this.types.computeIfAbsent(type, t -> new Builder(type, condition));
 		typeHint.accept(builder);
 		return this;
 	}
@@ -88,21 +89,23 @@ public class ReflectionHints {
 	/**
 	 * Register or customize reflection hints for the specified type.
 	 * @param type the type to customize
+	 * @param reachableType the reachable type that defines when the hint should apply
 	 * @param typeHint a builder to further customize hints for that type
 	 * @return {@code this}, to facilitate method chaining
 	 */
-	public ReflectionHints registerType(Class<?> type, Consumer<TypeHint.Builder> typeHint) {
-		return registerType(TypeReference.of(type), typeHint);
+	public ReflectionHints registerType(Class<?> type, Class<?> reachableType, Consumer<TypeHint.Builder> typeHint) {
+		return registerType(TypeReference.of(type), RuntimeHintCondition.of(reachableType), typeHint);
 	}
 
 	/**
 	 * Register the need for reflection on the specified {@link Field}.
 	 * @param field the field that requires reflection
+	 * @param reachableType the reachable type that defines when the hint should apply
 	 * @param fieldHint a builder to further customize the hints of this field
 	 * @return {@code this}, to facilitate method chaining
 	 */
-	public ReflectionHints registerField(Field field, Consumer<FieldHint.Builder> fieldHint) {
-		return registerType(TypeReference.of(field.getDeclaringClass()),
+	public ReflectionHints registerField(Field field, Class<?> reachableType, Consumer<FieldHint.Builder> fieldHint) {
+		return registerType(TypeReference.of(field.getDeclaringClass()), RuntimeHintCondition.of(reachableType),
 				typeHint -> typeHint.withField(field.getName(), fieldHint));
 	}
 
@@ -110,21 +113,23 @@ public class ReflectionHints {
 	 * Register the need for reflection on the specified {@link Field},
 	 * enabling write access.
 	 * @param field the field that requires reflection
+	 * @param reachableType the reachable type that defines when the hint should apply
 	 * @return {@code this}, to facilitate method chaining
 	 */
-	public ReflectionHints registerField(Field field) {
-		return registerField(field, fieldHint -> fieldHint.allowWrite(true));
+	public ReflectionHints registerField(Field field, Class<?> reachableType) {
+		return registerField(field, reachableType, fieldHint -> fieldHint.allowWrite(true));
 	}
 
 	/**
 	 * Register the need for reflection on the specified {@link Constructor}.
 	 * @param constructor the constructor that requires reflection
+	 * @param reachableType the reachable type that defines when the hint should apply
 	 * @param constructorHint a builder to further customize the hints of this
 	 * constructor
 	 * @return {@code this}, to facilitate method chaining
 	 */
-	public ReflectionHints registerConstructor(Constructor<?> constructor, Consumer<ExecutableHint.Builder> constructorHint) {
-		return registerType(TypeReference.of(constructor.getDeclaringClass()),
+	public ReflectionHints registerConstructor(Constructor<?> constructor, Class<?> reachableType, Consumer<ExecutableHint.Builder> constructorHint) {
+		return registerType(TypeReference.of(constructor.getDeclaringClass()), RuntimeHintCondition.of(reachableType),
 				typeHint -> typeHint.withConstructor(mapParameters(constructor), constructorHint));
 	}
 
@@ -132,21 +137,23 @@ public class ReflectionHints {
 	 * Register the need for reflection on the specified {@link Constructor},
 	 * enabling {@link ExecutableMode#INVOKE}.
 	 * @param constructor the constructor that requires reflection
+	 * @param reachableType the reachable type that defines when the hint should apply
 	 * @return {@code this}, to facilitate method chaining
 	 */
-	public ReflectionHints registerConstructor(Constructor<?> constructor) {
-		return registerConstructor(constructor, constructorHint ->
+	public ReflectionHints registerConstructor(Constructor<?> constructor, Class<?> reachableType) {
+		return registerConstructor(constructor, reachableType, constructorHint ->
 				constructorHint.withMode(ExecutableMode.INVOKE));
 	}
 
 	/**
 	 * Register the need for reflection on the specified {@link Method}.
 	 * @param method the method that requires reflection
+	 * @param reachableType the reachable type that defines when the hint should apply
 	 * @param methodHint a builder to further customize the hints of this method
 	 * @return {@code this}, to facilitate method chaining
 	 */
-	public ReflectionHints registerMethod(Method method, Consumer<ExecutableHint.Builder> methodHint) {
-		return registerType(TypeReference.of(method.getDeclaringClass()),
+	public ReflectionHints registerMethod(Method method, Class<?> reachableType, Consumer<ExecutableHint.Builder> methodHint) {
+		return registerType(TypeReference.of(method.getDeclaringClass()), RuntimeHintCondition.of(reachableType),
 				typeHint -> typeHint.withMethod(method.getName(), mapParameters(method), methodHint));
 	}
 
@@ -154,10 +161,11 @@ public class ReflectionHints {
 	 * Register the need for reflection on the specified {@link Method},
 	 * enabling {@link ExecutableMode#INVOKE}.
 	 * @param method the method that requires reflection
+	 * @param reachableType the reachable type that defines when the hint should apply
 	 * @return {@code this}, to facilitate method chaining
 	 */
-	public ReflectionHints registerMethod(Method method) {
-		return registerMethod(method, methodHint -> methodHint.withMode(ExecutableMode.INVOKE));
+	public ReflectionHints registerMethod(Method method, Class<?> reachableType) {
+		return registerMethod(method, reachableType, methodHint -> methodHint.withMode(ExecutableMode.INVOKE));
 	}
 
 	private List<TypeReference> mapParameters(Executable executable) {

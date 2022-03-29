@@ -28,7 +28,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -41,8 +40,7 @@ public final class TypeHint {
 
 	private final TypeReference type;
 
-	@Nullable
-	private final TypeReference reachableType;
+	private final RuntimeHintCondition condition;
 
 	private final Set<FieldHint> fields;
 
@@ -55,7 +53,7 @@ public final class TypeHint {
 
 	private TypeHint(Builder builder) {
 		this.type = builder.type;
-		this.reachableType = builder.reachableType;
+		this.condition = builder.condition;
 		this.memberCategories = Set.copyOf(builder.memberCategories);
 		this.fields = builder.fields.values().stream().map(FieldHint.Builder::build).collect(Collectors.toSet());
 		this.constructors = builder.constructors.values().stream().map(ExecutableHint.Builder::build).collect(Collectors.toSet());
@@ -66,11 +64,13 @@ public final class TypeHint {
 	 * Initialize a builder for the type defined by the specified
 	 * {@link TypeReference}.
 	 * @param type the type to use
+	 * @param condition the condition defining when this hint applies
 	 * @return a builder
 	 */
-	public static Builder of(TypeReference type) {
+	public static Builder of(TypeReference type, RuntimeHintCondition condition) {
 		Assert.notNull(type, "Type must not be null");
-		return new Builder(type);
+		Assert.notNull(condition, "Condition must not be null");
+		return new Builder(type,condition);
 	}
 
 	/**
@@ -82,13 +82,11 @@ public final class TypeHint {
 	}
 
 	/**
-	 * Return the type that should be reachable for this hint to apply, or
-	 * {@code null} if this hint should always been applied.
-	 * @return the reachable type, if any
+	 * Return the condition defining when this hint applies.
+	 * @return the condition type, if any
 	 */
-	@Nullable
-	public TypeReference getReachableType() {
-		return this.reachableType;
+	public RuntimeHintCondition getCondition() {
+		return this.condition;
 	}
 
 	/**
@@ -137,8 +135,7 @@ public final class TypeHint {
 
 		private final TypeReference type;
 
-		@Nullable
-		private TypeReference reachableType;
+		private RuntimeHintCondition condition;
 
 		private final Map<String, FieldHint.Builder> fields = new HashMap<>();
 
@@ -149,20 +146,9 @@ public final class TypeHint {
 		private final Set<MemberCategory> memberCategories = new HashSet<>();
 
 
-		public Builder(TypeReference type) {
+		public Builder(TypeReference type, RuntimeHintCondition condition) {
 			this.type = type;
-		}
-
-		/**
-		 * Make this hint conditional on the fact that the specified type
-		 * can be resolved.
-		 * @param reachableType the type that should be reachable for this
-		 * hint to apply
-		 * @return {@code this}, to facilitate method chaining
-		 */
-		public Builder onReachableType(TypeReference reachableType) {
-			this.reachableType = reachableType;
-			return this;
+			this.condition = condition;
 		}
 
 		/**
