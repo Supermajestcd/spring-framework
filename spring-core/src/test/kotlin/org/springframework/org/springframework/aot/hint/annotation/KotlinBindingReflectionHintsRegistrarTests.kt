@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.context.aot
+package org.springframework.org.springframework.aot.hint.annotation
 
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.ThrowingConsumer
 import org.junit.jupiter.api.Test
 import org.springframework.aot.hint.*
+import org.springframework.aot.hint.annotation.BindingReflectionHintsRegistrar
 
 /**
  * Tests for Kotlin support in [BindingReflectionHintsRegistrar].
