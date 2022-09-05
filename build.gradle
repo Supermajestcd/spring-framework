@@ -23,6 +23,7 @@ ext {
 
 configure(allprojects) { project ->
 	repositories {
+		mavenLocal()
 		mavenCentral()
 		maven { url "https://repo.spring.io/libs-spring-framework-build" }
 		maven { url "https://repo.spring.io/milestone" } // temporarily for context-propagation via Reactor Netty
