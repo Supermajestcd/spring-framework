@@ -191,9 +191,9 @@ public abstract class BeanUtils {
 				return KotlinDelegate.instantiateClass(ctor, args);
 			}
 			else {
-				int constructorParamCount = ctor.getParameterCount();
-				Assert.isTrue(args.length <= constructorParamCount, "Can't specify more arguments than constructor parameters");
-				if (constructorParamCount == 0) {
+				int parameterCount = ctor.getParameterCount();
+				Assert.isTrue(args.length <= parameterCount, "Can't specify more arguments than constructor parameters");
+				if (parameterCount == 0) {
 					return ctor.newInstance();
 				}
 				Class<?>[] parameterTypes = ctor.getParameterTypes();
