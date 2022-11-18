@@ -266,6 +266,7 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 		catch (Error err) {
 			// Ignore when no TransformerFactory implementation is available
 		}
+		// TODO Do we need AllEncompassingFormHttpMessageConverter variant here or FormHttpMessageConverter is enough?
 		this.messageConverters.add(new AllEncompassingFormHttpMessageConverter());
 	}
 

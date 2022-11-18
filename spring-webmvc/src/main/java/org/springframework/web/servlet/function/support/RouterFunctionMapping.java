@@ -195,6 +195,7 @@ public class RouterFunctionMapping extends AbstractHandlerMapping implements Ini
 		catch (Error err) {
 			// Ignore when no TransformerFactory implementation is available
 		}
+		// TODO Do we need AllEncompassingFormHttpMessageConverter variant here or FormHttpMessageConverter is enough?
 		messageConverters.add(new AllEncompassingFormHttpMessageConverter());
 
 		this.messageConverters = messageConverters;

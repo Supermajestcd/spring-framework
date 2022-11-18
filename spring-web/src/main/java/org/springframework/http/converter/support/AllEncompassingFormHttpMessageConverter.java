@@ -16,7 +16,10 @@
 
 package org.springframework.http.converter.support;
 
+import java.util.List;
+
 import org.springframework.http.converter.FormHttpMessageConverter;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.cbor.KotlinSerializationCborHttpMessageConverter;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
 import org.springframework.http.converter.json.JsonbHttpMessageConverter;
@@ -114,6 +117,10 @@ public class AllEncompassingFormHttpMessageConverter extends FormHttpMessageConv
 		if (kotlinSerializationProtobufPresent) {
 			addPartConverter(new KotlinSerializationProtobufHttpMessageConverter());
 		}
+	}
+
+	public AllEncompassingFormHttpMessageConverter(List<HttpMessageConverter<?>> messageConverters) {
+		super(messageConverters);
 	}
 
 }

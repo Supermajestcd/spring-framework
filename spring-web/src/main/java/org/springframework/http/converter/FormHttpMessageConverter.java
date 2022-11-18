@@ -173,14 +173,21 @@ public class FormHttpMessageConverter implements HttpMessageConverter<MultiValue
 
 
 	public FormHttpMessageConverter() {
+		this(List.of(new ByteArrayHttpMessageConverter(), new StringHttpMessageConverter(), new ResourceHttpMessageConverter()));
+	}
+
+	public FormHttpMessageConverter(List<HttpMessageConverter<?>> messageConverters) {
 		this.supportedMediaTypes.add(MediaType.APPLICATION_FORM_URLENCODED);
 		this.supportedMediaTypes.add(MediaType.MULTIPART_FORM_DATA);
 		this.supportedMediaTypes.add(MediaType.MULTIPART_MIXED);
 
-		this.partConverters.add(new ByteArrayHttpMessageConverter());
-		this.partConverters.add(new StringHttpMessageConverter());
-		this.partConverters.add(new ResourceHttpMessageConverter());
+		for (HttpMessageConverter<?> messageConverter : messageConverters) {
+			if (messageConverter != null) {
+				this.partConverters.add(messageConverter);
+			}
+		}
 
+		// TODO This is not ok since that will modify RestTemplate and WebMvcConfigurationSupport converters charset
 		applyDefaultCharset();
 	}
 

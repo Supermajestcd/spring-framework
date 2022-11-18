@@ -180,7 +180,8 @@ public class RestTemplate extends InterceptingHttpAccessor implements RestOperat
 			// Ignore when no TransformerFactory implementation is available
 		}
 
-		this.messageConverters.add(new AllEncompassingFormHttpMessageConverter());
+		int formConverterIndex = this.messageConverters.size();
+		this.messageConverters.add(null);
 
 		if (romePresent) {
 			this.messageConverters.add(new AtomFeedHttpMessageConverter());
@@ -221,6 +222,8 @@ public class RestTemplate extends InterceptingHttpAccessor implements RestOperat
 		else if (kotlinSerializationCborPresent) {
 			this.messageConverters.add(new KotlinSerializationCborHttpMessageConverter());
 		}
+
+		this.messageConverters.set(formConverterIndex, new AllEncompassingFormHttpMessageConverter(this.messageConverters));
 
 		updateErrorHandlerConverters();
 		this.uriTemplateHandler = initUriTemplateHandler();

@@ -887,7 +887,8 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 			// Ignore when no TransformerFactory implementation is available...
 		}
 
-		messageConverters.add(new AllEncompassingFormHttpMessageConverter());
+		int formConverterIndex = messageConverters.size();
+		messageConverters.add(null);
 
 		if (romePresent) {
 			messageConverters.add(new AtomFeedHttpMessageConverter());
@@ -943,6 +944,8 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 			}
 			messageConverters.add(new MappingJackson2CborHttpMessageConverter(builder.build()));
 		}
+
+		messageConverters.set(formConverterIndex, new AllEncompassingFormHttpMessageConverter(messageConverters));
 	}
 
 	/**

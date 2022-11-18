@@ -58,6 +58,7 @@ public class FormContentFilter extends OncePerRequestFilter {
 
 	private static final List<String> HTTP_METHODS = Arrays.asList("PUT", "PATCH", "DELETE");
 
+	// TODO Do we need AllEncompassingFormHttpMessageConverter variant here or FormHttpMessageConverter is enough?
 	private FormHttpMessageConverter formConverter = new AllEncompassingFormHttpMessageConverter();
 
 
