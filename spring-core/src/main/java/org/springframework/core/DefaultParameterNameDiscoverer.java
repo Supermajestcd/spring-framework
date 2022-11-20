@@ -19,8 +19,9 @@ package org.springframework.core;
 /**
  * Default implementation of the {@link ParameterNameDiscoverer} strategy interface,
  * using the Java 8 standard reflection mechanism (if available), and falling back
- * to the ASM-based {@link LocalVariableTableParameterNameDiscoverer} for checking
- * debug information in the class file.
+ * on the JVM (not in native images) to the ASM-based
+ * {@link LocalVariableTableParameterNameDiscoverer} for checking debug information
+ * in the class file.
  *
  * <p>If a Kotlin reflection implementation is present,
  * {@link KotlinReflectionParameterNameDiscoverer} is added first in the list and
@@ -43,7 +44,9 @@ public class DefaultParameterNameDiscoverer extends PrioritizedParameterNameDisc
 			addDiscoverer(new KotlinReflectionParameterNameDiscoverer());
 		}
 		addDiscoverer(new StandardReflectionParameterNameDiscoverer());
-		addDiscoverer(new LocalVariableTableParameterNameDiscoverer());
+		if (!NativeDetector.inNativeImage()) {
+			addDiscoverer(new LocalVariableTableParameterNameDiscoverer());
+		}
 	}
 
 }
